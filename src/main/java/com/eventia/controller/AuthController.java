@@ -36,16 +36,8 @@ public class AuthController {
     @Autowired
     private EmailService emailService;
 
-    // ============================
-    // REGISTRO
-    // ============================
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistroRequest req) {
-
-        // (opcional) podrías validar si el email ya existe
-        // if (usuarioRepository.findByEmail(req.getEmail().trim().toLowerCase()).isPresent()) {
-        //     return ResponseEntity.badRequest().body("EMAIL_EXISTE");
-        // }
 
         Usuario u = new Usuario();
         u.setNombre(req.getNombre());
@@ -60,20 +52,12 @@ public class AuthController {
 
         usuarioRepository.save(u);
 
-        // Enviar email PERO sin romper el registro si falla
-        try {
-            emailService.sendVerificationEmail(u.getEmail(), token);
-        } catch (RuntimeException ex) {
-            ex.printStackTrace(); // en Render lo verás en los logs
-            // aquí NO lanzamos excepción para que el frontend reciba 200 igual
-        }
+        // Enviar email
+        emailService.sendVerificationEmail(u.getEmail(), token);
 
         return ResponseEntity.ok("REGISTRADO");
     }
 
-    // ============================
-    // VERIFICAR CUENTA
-    // ============================
     @PostMapping("/verify")
     public ResponseEntity<?> verifyAccount(@RequestBody Map<String, String> body) {
 
@@ -104,9 +88,6 @@ public class AuthController {
         return ResponseEntity.ok(resp);
     }
 
-    // ============================
-    // REENVIAR VERIFICACIÓN
-    // ============================
     @PostMapping("/resend-verification")
     public ResponseEntity<String> resendVerification(@RequestParam("email") String email) {
 
@@ -130,19 +111,11 @@ public class AuthController {
         u.setVerificationToken(token);
         usuarioRepository.save(u);
 
-        try {
-            emailService.sendVerificationEmail(u.getEmail(), token);
-        } catch (RuntimeException ex) {
-            ex.printStackTrace();
-            // no rompemos la respuesta
-        }
+        emailService.sendVerificationEmail(u.getEmail(), token);
 
         return ResponseEntity.ok("REENVIADO");
     }
 
-    // ============================
-    // LOGIN
-    // ============================
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest req) {
 

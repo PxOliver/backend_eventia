@@ -11,7 +11,7 @@ import java.security.Key;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "Xj3C7zqQjnKy5pCqVh3Y9p8WsR2uLbZh9eTr8Hh2";
+    private static final String SECRET_KEY = "b4ac7f3bf8cd91a24f195e8b7a3f4812b9c3d6f7281e4a7c93fd2a18b4d6f091";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
