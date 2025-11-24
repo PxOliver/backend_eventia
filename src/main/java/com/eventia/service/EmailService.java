@@ -14,10 +14,11 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    // En local, si no hay variable, usa http://localhost:3000
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
-    // Remitente opcional (puedes configurarlo igual en el properties)
+    // Remitente opcional (puedes configurarlo igual en el properties/env)
     @Value("${spring.mail.username:no-reply@eventia.com}")
     private String fromAddress;
 
@@ -25,7 +26,7 @@ public class EmailService {
 
         String subject = "Verifica tu cuenta en Eventia";
 
-        // Construir URL hacia el front
+        // Construir URL hacia el front (local o Render según env var)
         String verificationUrl = frontendBaseUrl + "/verificar?token=" + token;
 
         String htmlContent = """
@@ -78,9 +79,14 @@ public class EmailService {
 
             mailSender.send(message);
 
+            // Opcional: loguear éxito
+            System.out.println("Email de verificación enviado a: " + to
+                    + " con URL: " + verificationUrl);
+
         } catch (MessagingException e) {
-            // aquí podrías loguear con logger, etc.
-            throw new RuntimeException("Error enviando correo de verificación a " + to, e);
+            // NO rompemos el flujo, solo log
+            System.err.println("Error enviando correo de verificación a " + to);
+            e.printStackTrace();
         }
     }
 }
