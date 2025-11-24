@@ -14,7 +14,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend.base-url:http://localhost:3000}")
+    @Value("${app.frontend.base-url:https://frontend-eventia.onrender.com}")
     private String frontendBaseUrl;
 
     // Remitente opcional (puedes configurarlo igual en el properties)
@@ -79,8 +79,8 @@ public class EmailService {
             mailSender.send(message);
 
         } catch (MessagingException e) {
-            // aquí podrías loguear con logger, etc.
-            throw new RuntimeException("Error enviando correo de verificación a " + to, e);
+            e.printStackTrace(); // log
+            // NO relanzamos para no tirar 500 en /register
         }
     }
 }
