@@ -56,21 +56,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
 
-        // puede venir algo como:
-        // "http://localhost:3000,https://mi-frontend.onrender.com"
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin"));
-        config.setExposedHeaders(Arrays.asList("Authorization"));
-        config.setAllowCredentials(true);
+    // acepta localhost con cualquier puerto (3000, 5173, etc.)
+    config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*"));
+    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(Arrays.asList("*"));
+    config.setExposedHeaders(Arrays.asList("Authorization"));
+    config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
+
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
