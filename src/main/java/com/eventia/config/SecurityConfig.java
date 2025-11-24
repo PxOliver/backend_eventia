@@ -27,32 +27,30 @@ public class SecurityConfig {
     @Autowired
     private UsuarioService usuarioService;
 
-    // 👉 leer orígenes permitidos desde variable de entorno / properties
-    @Value("${app.allowed-origins:http://localhost:3000}")
+    @Value("${frontend.url}")
     private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
-                .requestMatchers("/api/reservas/**").authenticated()
-                .requestMatchers("/api/comentarios/**").authenticated()
-                .anyRequest().authenticated()
-            )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
+                        .requestMatchers("/api/reservas/**").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
+                        .anyRequest().authenticated())
 
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -61,7 +59,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // puede venir algo como: "http://localhost:3000,https://mi-frontend.onrender.com"
+        // puede venir algo como:
+        // "http://localhost:3000,https://mi-frontend.onrender.com"
         config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin"));
