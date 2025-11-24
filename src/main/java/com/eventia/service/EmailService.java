@@ -14,32 +14,29 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    // URL base del FRONTEND (Render)
     @Value("${app.frontend.base-url:http://localhost:3000}")
     private String frontendBaseUrl;
 
-    // Remitente opcional (puedes configurarlo igual en el properties)
-    @Value("${spring.mail.username:no-reply@eventia.com}")
+    // Remitente (el MAIL_FROM de Render)
+    @Value("${MAIL_FROM:no-reply@eventia.com}")
     private String fromAddress;
 
     public void sendVerificationEmail(String to, String token) {
 
         String subject = "Verifica tu cuenta en Eventia";
 
-        // Construir URL hacia el front
         String verificationUrl = frontendBaseUrl + "/verificar?token=" + token;
 
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7;">
                 <div style="max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0px 4px 12px rgba(0,0,0,0.1);">
-                    
                     <h2 style="color: #5C2A9D; text-align: center; margin-top: 0;">¡Bienvenido a <span style="color:#FFD700;">Eventia</span>!</h2>
-                    
                     <p style="font-size: 15px; color: #333; line-height: 1.6;">
                         Gracias por registrarte en nuestro sistema de reservas de espacios para eventos.
                         Para <strong>activar tu cuenta</strong> y comenzar a usar la plataforma,
                         haz clic en el siguiente botón:
                     </p>
-                    
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="%s" 
                            style="background-color: #5C2A9D; color: white; padding: 12px 28px; 
@@ -48,21 +45,17 @@ public class EmailService {
                             Verificar mi cuenta
                         </a>
                     </div>
-
                     <p style="font-size: 13px; color: #555; line-height: 1.5;">
                         Si el botón no funciona, también puedes copiar y pegar este enlace en tu navegador:
                         <br/>
                         <span style="font-size: 12px; color: #777;">%s</span>
                     </p>
-
                     <p style="font-size: 12px; color: #999; margin-top: 25px;">
                         Si tú no creaste esta cuenta, puedes ignorar este mensaje con tranquilidad.
                     </p>
-
                     <p style="font-size: 11px; text-align:center; color: #aaa; margin-top: 15px;">
                         © Eventia · Sistema de Reservas de Espacios para Eventos
                     </p>
-
                 </div>
             </div>
         """.formatted(verificationUrl, verificationUrl);
@@ -73,15 +66,13 @@ public class EmailService {
 
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true);   // true = HTML
-            helper.setFrom(fromAddress);         // remitente
+            helper.setText(htmlContent, true);
+            helper.setFrom(fromAddress);
 
             mailSender.send(message);
 
         } catch (MessagingException e) {
-    e.printStackTrace(); // o logger.error(...)
-    // NO volver a lanzar, para no romper la API
-}
-
+            e.printStackTrace(); // no relanzamos para que no rompa el registro
+        }
     }
 }
