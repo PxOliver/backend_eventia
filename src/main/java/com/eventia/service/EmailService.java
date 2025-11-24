@@ -79,8 +79,9 @@ public class EmailService {
             mailSender.send(message);
 
         } catch (MessagingException e) {
-            // aquí podrías loguear con logger, etc.
-            throw new RuntimeException("Error enviando correo de verificación a " + to, e);
-        }
+    e.printStackTrace(); // o logger.error(...)
+    // NO volver a lanzar, para no romper la API
+}
+
     }
 }

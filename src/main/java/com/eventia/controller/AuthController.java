@@ -37,26 +37,31 @@ public class AuthController {
     private EmailService emailService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegistroRequest req) {
+public ResponseEntity<?> register(@RequestBody RegistroRequest req) {
 
-        Usuario u = new Usuario();
-        u.setNombre(req.getNombre());
-        u.setApellido(req.getApellido());
-        u.setEmail(req.getEmail().trim().toLowerCase());
-        u.setPassword(passwordEncoder.encode(req.getPassword()));
-        u.setRol(Usuario.Rol.valueOf(req.getRol().toUpperCase()));
-        u.setVerificado(false);
+    Usuario u = new Usuario();
+    u.setNombre(req.getNombre());
+    u.setApellido(req.getApellido());
+    u.setEmail(req.getEmail().trim().toLowerCase());
+    u.setPassword(passwordEncoder.encode(req.getPassword()));
+    u.setRol(Usuario.Rol.valueOf(req.getRol().toUpperCase()));
+    u.setVerificado(false);
 
-        String token = UUID.randomUUID().toString();
-        u.setVerificationToken(token);
+    String token = UUID.randomUUID().toString();
+    u.setVerificationToken(token);
 
-        usuarioRepository.save(u);
+    usuarioRepository.save(u);
 
-        // Enviar email
+    // Enviar email PERO sin romper el registro si falla
+    try {
         emailService.sendVerificationEmail(u.getEmail(), token);
-
-        return ResponseEntity.ok("REGISTRADO");
+    } catch (RuntimeException ex) {
+        ex.printStackTrace(); // o logger.warn(...)
     }
+
+    return ResponseEntity.ok("REGISTRADO");
+}
+
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyAccount(@RequestBody Map<String, String> body) {
