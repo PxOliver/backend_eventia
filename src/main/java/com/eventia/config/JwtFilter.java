@@ -25,23 +25,12 @@ public class JwtFilter extends OncePerRequestFilter {
     private UsuarioService usuarioService;
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-
-        // 👉 NO filtrar JWT en endpoints PÚBLICOS:
-        return path.startsWith("/api/auth")
-                || path.startsWith("/uploads")
-                || path.startsWith("/api/propiedades")
-                || path.startsWith("/api/comentarios/propiedad");
-    }
-
-    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
 
         String jwt = null;
         String username = null;
@@ -51,13 +40,11 @@ public class JwtFilter extends OncePerRequestFilter {
             username = jwtService.extractUsername(jwt);
         }
 
-        if (username != null
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = usuarioService.loadUserByUsername(username);
 
             if (jwtService.validateToken(jwt, userDetails)) {
-
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -70,5 +57,10 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getServletPath().startsWith("/api/auth");
     }
 }

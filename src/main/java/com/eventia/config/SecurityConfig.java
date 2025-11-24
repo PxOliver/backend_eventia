@@ -33,40 +33,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable());
+        http
+                .csrf(csrf -> csrf.disable())
 
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
+                        .requestMatchers("/api/reservas/**").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
+                        .anyRequest().authenticated())
 
-                // 👉 ENDPOINTS PÚBLICOS
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
-
-                // 👉 PROTEGIDOS
-                .requestMatchers("/api/reservas/**").authenticated()
-                .requestMatchers("/api/comentarios/**").authenticated()
-
-                .anyRequest().authenticated()
-        );
-
-        http.sessionManagement(sess ->
-                sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authenticationProvider(authenticationProvider());
-
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
+
+        // puede venir algo como:
+        // "http://localhost:3000,https://mi-frontend.onrender.com"
         config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin"));
@@ -75,7 +69,6 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 
