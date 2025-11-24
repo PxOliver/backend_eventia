@@ -2,6 +2,7 @@ package com.eventia.config;
 
 import com.eventia.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
@@ -26,25 +27,30 @@ public class SecurityConfig {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Value("${frontend.url}")
+    private String allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
-                .requestMatchers("/api/reservas/**").authenticated()
-                .requestMatchers("/api/comentarios/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/propiedades/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comentarios/propiedad/**").permitAll()
+                        .requestMatchers("/api/reservas/**").authenticated()
+                        .requestMatchers("/api/comentarios/**").authenticated()
+                        .anyRequest().authenticated())
+
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -53,14 +59,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 👇 IMPORTANTÍSIMO: usar *patterns* para que funcione localhost:* y el dominio de Render
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "https://frontend-eventia.onrender.com"
-        ));
-
+        // puede venir algo como:
+        // "http://localhost:3000,https://mi-frontend.onrender.com"
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin"));
         config.setExposedHeaders(Arrays.asList("Authorization"));
         config.setAllowCredentials(true);
 
