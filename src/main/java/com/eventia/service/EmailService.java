@@ -2,31 +2,33 @@ package com.eventia.service;
 
 import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.*;
-import lombok.RequiredArgsConstructor;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    @Value("${app.frontend.base-url:https://frontend-eventia.onrender.com}")
-    private String frontendBaseUrl;
+    // API KEY de SendGrid (la guardas en Render)
+    @Value("${SENDGRID_API_KEY}")
+    private String sendGridApiKey;
 
-    @Value("${mail.from}")
+    // Remitente
+    @Value("${MAIL_FROM:no-reply@eventia.com}")
     private String fromAddress;
 
-    @Value("${sendgrid.api-key}")
-    private String sendgridApiKey;
+    // URL base del FRONTEND (Render o localhost)
+    @Value("${FRONTEND_BASE_URL:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     public void sendVerificationEmail(String to, String token) {
 
-        String subject = "Verifica tu cuenta en Eventia";
-
         String verificationUrl = frontendBaseUrl + "/verificar?token=" + token;
+
+        String subject = "Verifica tu cuenta en Eventia";
 
         String htmlContent = """
             <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7;">
@@ -67,13 +69,12 @@ public class EmailService {
             </div>
         """.formatted(verificationUrl, verificationUrl);
 
-        Email from = new Email(fromAddress, "Eventia");
+        Email from = new Email(fromAddress);
         Email toEmail = new Email(to);
         Content content = new Content("text/html", htmlContent);
-
         Mail mail = new Mail(from, subject, toEmail, content);
 
-        SendGrid sg = new SendGrid(sendgridApiKey);
+        SendGrid sg = new SendGrid(sendGridApiKey);
         Request request = new Request();
 
         try {
@@ -86,8 +87,7 @@ public class EmailService {
             System.out.println("SendGrid body: " + response.getBody());
 
         } catch (IOException ex) {
-            ex.printStackTrace();
-            // no relanzamos para no romper el registro
+            ex.printStackTrace(); // logueas pero NO rompes el flujo
         }
     }
 }
