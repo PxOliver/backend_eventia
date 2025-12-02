@@ -6,6 +6,7 @@ import com.eventia.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -21,22 +22,21 @@ import java.util.Map;
 public class PerfilController {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Obtener datos del usuario autenticado
+    // ==============================
+    // GET PERFIL
+    // ==============================
     @GetMapping
     public ResponseEntity<?> getMiPerfil() {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElse(null);
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
 
         if (usuario == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Puedes devolver el usuario completo o un DTO; aquí lo dejo simple
         Map<String, Object> resp = new HashMap<>();
         resp.put("id", usuario.getId());
         resp.put("nombre", usuario.getNombre());
@@ -48,15 +48,14 @@ public class PerfilController {
         return ResponseEntity.ok(resp);
     }
 
-    // Actualizar nombre / apellido / fotoPerfil
+    // ==============================
+    // UPDATE PERFIL (nombre, apellido, fotoPerfil)
+    // ==============================
     @PutMapping
     public ResponseEntity<?> actualizarPerfil(@RequestBody PerfilUpdateRequest req) {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElse(null);
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
 
         if (usuario == null) {
             return ResponseEntity.notFound().build();
@@ -85,7 +84,9 @@ public class PerfilController {
         return ResponseEntity.ok(resp);
     }
 
-    // Subir archivo de foto de perfil
+    // ==============================
+    // SUBIR AVATAR
+    // ==============================
     @PostMapping("/avatar")
     public ResponseEntity<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
 
@@ -98,7 +99,6 @@ public class PerfilController {
 
         try {
             String uploadDir = "uploads/avatars";
-
             Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
 
@@ -114,19 +114,38 @@ public class PerfilController {
 
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .build()
-                    .toUriString();
-
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             String fileUrl = baseUrl + "/uploads/avatars/" + fileName;
 
             resp.put("url", fileUrl);
             return ResponseEntity.ok(resp);
 
         } catch (IOException e) {
-            e.printStackTrace();
             resp.put("error", "Error al guardar archivo");
             return ResponseEntity.internalServerError().body(resp);
         }
+    }
+
+    // ==============================
+    // CAMBIAR CONTRASEÑA
+    // ==============================
+    @PutMapping("/password")
+    public ResponseEntity<?> cambiarPassword(@RequestBody Map<String, String> body) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        String actual = body.get("actual");
+        String nueva = body.get("nueva");
+
+        if (!passwordEncoder.matches(actual, usuario.getPassword())) {
+            return ResponseEntity.badRequest().body("CONTRASENA_INCORRECTA");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(nueva));
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok("CONTRASENA_CAMBIADA");
     }
 }
