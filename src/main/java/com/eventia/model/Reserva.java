@@ -1,5 +1,7 @@
 package com.eventia.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -34,4 +36,13 @@ public class Reserva {
     @ManyToOne
     @JoinColumn(name = "propiedad_id")
     private Propiedad propiedad;
+
+    @OneToOne(mappedBy = "reserva")
+    @JsonIgnoreProperties("reserva") 
+    private Pago pago;
+
+    @JsonProperty("pagado")
+    public boolean isPagado() {
+        return this.pago != null;
+    }
 }
