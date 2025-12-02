@@ -33,4 +33,7 @@ public class Usuario {
 
     @Column(name = "verification_token")
     private String verificationToken;
+    
+    @Column(name = "foto_perfil")
+    private String fotoPerfil;
 }
