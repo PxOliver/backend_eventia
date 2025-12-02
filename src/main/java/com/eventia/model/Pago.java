@@ -14,7 +14,7 @@ public class Pago {
     public enum Metodo {
         EFECTIVO,
         TARJETA,
-        TRANSFERENCIA
+        YAPE
     }
 
     @Id
