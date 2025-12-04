@@ -61,7 +61,8 @@ public CorsConfigurationSource corsConfigurationSource() {
 
     config.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",                      // para desarrollo
-            "https://frontend-eventia.onrender.com"   // para producción en Render
+            "https://frontend-eventia.onrender.com",
+            "https://electrocyb.lat"  
     ));
 
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
